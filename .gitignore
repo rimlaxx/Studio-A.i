@@ -1,33 +1,96 @@
-# Gradle files
-.gradle/
-build/
+import { Observable } from '@nativescript/core';
+import { alert } from '@nativescript/core/ui/dialogs';
+import { Frame } from '@nativescript/core';
 
-# Local configuration file (sdk path, etc)
-local.properties
+export function createViewModel() {
+    const viewModel = new Observable();
 
-# Log/OS Files
-*.log
+    viewModel.cartItems = [];
+    viewModel.cartItemCount = 0;
 
-# Android Studio generated files and folders
-captures/
-.externalNativeBuild/
-.cxx/
-*.apk
-output.json
+    viewModel.products = [
+        {
+            id: 1,
+            name: 'AI Smart Watch Pro',
+            price: 399.99,
+            description: 'Advanced AI-powered smartwatch with health monitoring and voice assistant',
+            image: 'https://picsum.photos/id/26/800/800'
+        },
+        {
+            id: 2,
+            name: 'Premium Leather Band',
+            price: 79.99,
+            description: 'Handcrafted Italian leather band with smart quick-release system',
+            image: 'https://picsum.photos/id/27/800/800'
+        },
+        {
+            id: 3,
+            name: 'Neural Fitness Tracker',
+            price: 199.99,
+            description: 'AI-powered fitness companion with personalized coaching',
+            image: 'https://picsum.photos/id/28/800/800'
+        },
+        {
+            id: 4,
+            name: 'Studio Buds Pro',
+            price: 249.99,
+            description: 'Premium wireless earbuds with spatial audio and AI noise cancellation',
+            image: 'https://picsum.photos/id/29/800/800'
+        },
+        {
+            id: 5,
+            name: 'Quantum Smart Ring',
+            price: 299.99,
+            description: 'Revolutionary smart ring with advanced health sensors and contactless payments',
+            image: 'https://picsum.photos/id/30/800/800'
+        }
+    ];
 
-# IntelliJ
-*.iml
-.idea/
-misc.xml
-deploymentTargetDropDown.xml
-render.experimental.xml
+    viewModel.onItemTap = (args) => {
+        const product = viewModel.products[args.index];
+        alert({
+            title: product.name,
+            message: `Experience the future of technology.\n\nPrice: $${product.price}\n${product.description}`,
+            okButtonText: 'Close'
+        });
+    };
 
-# Keystore files
-*.jks
-*.keystore
+    viewModel.onAddToCart = (args) => {
+        const product = args.object.bindingContext;
+        const existingItem = viewModel.cartItems.find(item => item.id === product.id);
 
-# Google Services (e.g. APIs or Firebase)
-google-services.json
+        if (existingItem) {
+            existingItem.quantity += 1;
+        } else {
+            viewModel.cartItems.push({
+                ...product,
+                quantity: 1
+            });
+        }
 
-# Android Profiling
-*.hprof
+        viewModel.cartItemCount = viewModel.cartItems.reduce((sum, item) => sum + item.quantity, 0);
+        viewModel.notifyPropertyChange('cartItemCount', viewModel.cartItemCount);
+
+        alert({
+            title: '✨ Added to Cart',
+            message: `${product.name} has been added to your collection`,
+            okButtonText: 'Continue Shopping'
+        });
+    };
+
+    viewModel.onCartTap = () => {
+        Frame.topmost().navigate({
+            moduleName: 'components/cart-page',
+            context: {
+                cartItems: viewModel.cartItems
+            },
+            transition: {
+                name: 'slideLeft',
+                duration: 300,
+                curve: 'easeInOut'
+            }
+        });
+    };
+
+    return viewModel;
+}
